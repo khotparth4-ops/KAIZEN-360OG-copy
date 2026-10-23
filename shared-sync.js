@@ -1,4 +1,4 @@
-/* Syncs the app's shared teacher/student items with /api/sync (Neon). */
+/* Syncs the app's shared teacher/student items with /api/sync (Supabase Postgres). */
 (function () {
   var API = '/api/sync';
   var COLS = ['posts', 'challenges', 'events', 'attSessions', 'submissions', 'postSubs', 'completions', 'registrations'];

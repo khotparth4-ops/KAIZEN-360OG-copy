@@ -10,7 +10,7 @@
 | Name | Purpose |
 |---|---|
 | `MINIMOTH_API_KEY` | Phone OTP sign-in (server only) |
-| `DATABASE_URL` | Neon Postgres connection (server only) |
+| `SUPABASE_DB_URL` | Supabase Transaction Pooler connection string (server only; port 6543) |
 | `TEACHER_PHONES` | Teacher numbers: `9876543210=Name|D2A:Subject,D1EC:Subject;...` |
 | `ADMIN_PHONES` | HOD/admin numbers, comma-separated |
 | `GEMINI_API_KEY` | AI assistant (optional) |

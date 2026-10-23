@@ -1,21 +1,15 @@
-// Canteen reviews shared through Neon (used by /reviews-sync.js).
+// Canteen reviews shared through Supabase Postgres (used by /reviews-sync.js).
 // GET: newest 500 reviews. POST: signed-in users only; a review can only be changed by the person who wrote it.
-const { neon } = require('@neondatabase/serverless');
+const db = require('../_db');
 const { getPhone } = require('../_session');
 
-let sql = null, ready = null;
-const db = () => (sql = sql || neon(process.env.DATABASE_URL));
-const ensure = () => (ready = ready || (async () => {
-  const s = db();
-  await s`CREATE TABLE IF NOT EXISTS kaizen_reviews (id TEXT PRIMARY KEY, data JSONB NOT NULL, created_at TIMESTAMPTZ DEFAULT NOW())`;
-  await s`ALTER TABLE kaizen_reviews ADD COLUMN IF NOT EXISTS owner TEXT`;
-})().catch((e) => { ready = null; throw e; }));
+const ensure = () => db.ensureSchema();
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   try {
     await ensure();
-    const s = db();
+    const s = db.sql;
     if (req.method === 'GET') {
       const rows = await s`SELECT data FROM kaizen_reviews ORDER BY created_at DESC LIMIT 500`;
       return res.status(200).json(rows.map((r) => r.data).reverse());

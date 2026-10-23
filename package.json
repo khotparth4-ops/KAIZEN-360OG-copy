@@ -1,5 +1,7 @@
 {
   "name": "campus360",
   "private": true,
-  "dependencies": { "@neondatabase/serverless": "^0.10.0" }
+  "dependencies": {
+    "pg": "8.23.1"
+  }
 }

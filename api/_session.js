@@ -1,6 +1,5 @@
 const crypto = require('crypto');
-const { neon } = require('@neondatabase/serverless');
-const sql = neon(process.env.DATABASE_URL);
+const { sql } = require('./_db');
 
 function readCookie(req, name) {
   for (const part of (req.headers.cookie || '').split(';')) {
@@ -10,7 +9,7 @@ function readCookie(req, name) {
   return null;
 }
 
-// Verified phone number from the signed login cookie, or null.
+// Verified phone number from the signed MiniMoth login cookie, or null.
 function getPhone(req) {
   const key = process.env.MINIMOTH_API_KEY;
   if (!key) return null;

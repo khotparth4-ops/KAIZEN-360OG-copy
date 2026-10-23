@@ -1,6 +1,6 @@
 // Roles v2 (Phases A–F) server tests: real handlers + real Postgres (PGlite) + production-style signed cookies.
 // Synthetic numbers only. Run: npm test (in this folder).
-process.env.MINIMOTH_API_KEY = 'mm_test_k'; process.env.DATABASE_URL = 'postgres://u:p@h.example/db';
+process.env.MINIMOTH_API_KEY = 'mm_test_k'; process.env.SUPABASE_DB_URL = 'postgres://u:p@h.example/db';
 process.env.HOD_PHONES = '9100000001=CMPN;9100000002=AIDS'; process.env.TEACHER_PHONES = '9100000021=Env Teacher|D2B:Maths';
 const path = require('path'), fs = require('fs'), crypto = require('crypto'), assert = require('assert');
 const API = process.env.API_DIR || path.join(__dirname, '../../api');

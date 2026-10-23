@@ -1,5 +1,5 @@
 // Phase 1 server tests: real Postgres (PGlite), real handlers, signed cookies like production.
-process.env.MINIMOTH_API_KEY = 'mm_test_k'; process.env.DATABASE_URL = 'postgres://u:p@h/db';
+process.env.MINIMOTH_API_KEY = 'mm_test_k'; process.env.SUPABASE_DB_URL = 'postgres://u:p@h/db';
 process.env.TEACHER_PHONES = '9000000001=Teacher|D2A:Maths'; process.env.ADMIN_PHONES = '';
 const R = require('path').join(__dirname, '../../api/') + '/';
 const crypto = require('crypto');
@@ -23,6 +23,10 @@ let pass = 0; const t = async (name, fn) => { try { await fn(); pass++; console.
   let laptop, phone;
   await t('first sign-in creates one account (laptop)', async () => { laptop = (await call('me', 'GET', A)).body; assert.ok(laptop.account.id); assert.equal(laptop.version, 0); });
   await t('migrations ran: 12 FE divisions seeded', async () => { const r = await call('divisions', 'GET', A); assert.equal(r.body.divisions.length, 12); });
+  await t('Supabase base API tables are created by migration 5', async () => {
+    const r = await pg.query("select to_regclass('users') as users, to_regclass('rides') as rides, to_regclass('kaizen_reviews') as reviews, to_regclass('api_cache') as cache, to_regclass('places') as places");
+    for (const name of ['users', 'rides', 'reviews', 'cache', 'places']) assert.ok(r.rows[0][name], `${name} table should exist`);
+  });
   await t('laptop saves profile + data', async () => {
     const r = await call('me', 'PUT', A, { baseVersion: 0, profile: { name: 'Riya', division: 'D2A', role: 'teacher', teaches: [{ division: 'D2A' }] }, data: { subjects: [{ name: 'M1', ise: 18 }] } });
     assert.equal(r.status, 200); assert.equal(r.body.version, 1);
