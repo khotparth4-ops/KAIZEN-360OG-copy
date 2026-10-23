@@ -1,11 +1,12 @@
-const { neon } = require('@neondatabase/serverless');
+const db = require('./_db');
 const { getPhone } = require('./_session');
-const sql = neon(process.env.DATABASE_URL);
+const sql = db.sql;
 
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   const phone = getPhone(req);
   if (!phone) return res.status(401).json({ error: 'Sign in required' });
+  await db.ensureSchema();
 
   if (req.method === 'GET') {
     // owner_phone is deliberately not returned

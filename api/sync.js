@@ -1,4 +1,4 @@
-// api/sync.js: stores the app's shared teacher/student items in Neon.
+// api/sync.js: stores the app's shared teacher/student items in Supabase Postgres.
 // Uses the same signed login cookie and roles as api/app.js.
 const { getPhone } = require('./_session');
 const access = require('./_access');

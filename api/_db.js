@@ -1,25 +1,63 @@
-// Database access for Campus360 (Neon Postgres over HTTP).
-// `q(text, params)` runs one parameterised statement and returns rows. Migrations run once per server
-// instance; every statement is idempotent, so two instances starting together are safe.
+// Database access for Campus360 (Supabase Postgres).
+// Both helpers return row arrays. The tagged-template helper preserves existing API call sites
+// while node-postgres sends interpolated values as parameters.
 const MIGRATIONS = require('./_migrations');
 
 let client = null;
-function q(text, params = []) {
-  if (!client) {
-    if (!process.env.DATABASE_URL) {
-      const e = new Error('The database is not configured.');
+let pool = null;
+function getPool() {
+  if (!pool) {
+    if (!process.env.SUPABASE_DB_URL) {
+      const e = new Error('The Supabase database is not configured.');
       e.code = 'DB_NOT_CONFIGURED';
       throw e;
     }
-    const { neon } = require('@neondatabase/serverless');
-    const sql = neon(process.env.DATABASE_URL);
-    client = (t, p) => sql.query ? sql.query(t, p) : sql(t, p);
+    const { Pool } = require('pg');
+    // Use the Supabase transaction-pooler URL (port 6543), which is designed for serverless APIs.
+    pool = new Pool({
+      connectionString: process.env.SUPABASE_DB_URL,
+      max: 2,
+      connectionTimeoutMillis: 10000,
+      idleTimeoutMillis: 10000,
+      allowExitOnIdle: true,
+    });
+    pool.on('error', (err) => console.error('Supabase Postgres pool error:', err.code || 'unknown'));
   }
-  return client(text, params);
+  return pool;
+}
+
+function q(text, params = []) {
+  if (client) return client(text, params);
+  return (async () => {
+    const connection = await getPool().connect();
+    try {
+      // Transaction-local search_path works with Supabase's transaction pooler and keeps the
+      // application's tables in its private schema without changing the existing `campus` schema.
+      await connection.query('begin');
+      await connection.query('set local search_path to campus360_api, public');
+      const result = await connection.query(text, params);
+      await connection.query('commit');
+      return result.rows;
+    } catch (err) {
+      await connection.query('rollback').catch(() => {});
+      throw err;
+    } finally {
+      connection.release();
+    }
+  })();
+}
+
+// Compatibility layer for existing tagged-template SQL calls.
+function sql(strings, ...values) {
+  let text = strings[0];
+  for (let i = 0; i < values.length; i++) text += `$${i + 1}${strings[i + 1]}`;
+  return q(text, values);
 }
 
 let ready = null;
 async function migrate(run = q) {
+  // Keep the Supabase schema created for this API separate from the existing `campus` schema.
+  if (run === q) await run('create schema if not exists campus360_api');
   await run('create table if not exists schema_migrations (id int primary key, name text not null, applied_at timestamptz not null default now())');
   const done = new Set((await run('select id from schema_migrations')).map((r) => r.id));
   for (const m of MIGRATIONS) {
@@ -46,4 +84,4 @@ const audit = (actor, action, target, detail, branch) =>
 /** Tests inject an in-memory Postgres. */
 function _setClient(fn) { client = fn; ready = null; }
 
-module.exports = { q, ensureSchema, migrate, allow, audit, _setClient };
+module.exports = { q, sql, ensureSchema, migrate, allow, audit, _setClient };

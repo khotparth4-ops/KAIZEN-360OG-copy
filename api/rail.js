@@ -1,6 +1,6 @@
-const { neon } = require('@neondatabase/serverless');
+const db = require('./_db');
 const { getPhone } = require('./_session');
-const sql = neon(process.env.DATABASE_URL);
+const sql = db.sql;
 const BASE = 'https://api.railradar.in/v1';
 
 const KINDS = {
@@ -13,6 +13,7 @@ module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'GET') return res.status(405).end();
   if (!getPhone(req)) return res.status(401).json({ error: 'Sign in required' });
+  await db.ensureSchema();
 
   const kind = KINDS[req.query.kind];
   if (!kind || !kind.ok(req.query)) return res.status(400).json({ error: 'Bad request' });

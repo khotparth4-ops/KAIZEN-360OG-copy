@@ -119,7 +119,7 @@ module.exports = async (req, res) => {
     // GET /health: tells the page whether real OTP is available
     if (route === 'health' && method === 'GET') {
       const mode = !key ? null : key.startsWith('mm_test_') ? 'test' : key.startsWith('mm_live_') ? 'live' : null;
-      return respond(res, 200, { ok: true, configured: !!key && !!mode, mode, teachersConfigured: !!String(process.env.TEACHER_PHONES || '').trim(), hodsConfigured: !!String(process.env.HOD_PHONES || '').trim(), databaseConfigured: !!process.env.DATABASE_URL });
+      return respond(res, 200, { ok: true, configured: !!key && !!mode, mode, teachersConfigured: !!String(process.env.TEACHER_PHONES || '').trim(), hodsConfigured: !!String(process.env.HOD_PHONES || '').trim(), databaseConfigured: !!process.env.SUPABASE_DB_URL });
     }
 
     if (!key) {

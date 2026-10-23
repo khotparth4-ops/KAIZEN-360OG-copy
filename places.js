@@ -1,8 +1,9 @@
-const { neon } = require('@neondatabase/serverless');
-const { requireRole } = require('./_session');
-const sql = neon(process.env.DATABASE_URL);
+const db = require('./api/_db');
+const { requireRole } = require('./api/_session');
+const sql = db.sql;
 
 module.exports = async (req, res) => {
+  await db.ensureSchema();
   if (req.method === 'GET') {
     res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
     const rows = await sql`select id, name, category, lat, lng, note from places order by name`;

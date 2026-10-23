@@ -1,6 +1,6 @@
 // Parent Portal server tests: real handlers + real Postgres (PGlite) + production-style signed cookies.
 // Synthetic numbers and names only. Run: npm test (in this folder).
-process.env.MINIMOTH_API_KEY = 'mm_test_k'; process.env.DATABASE_URL = 'postgres://u:p@h.example/db';
+process.env.MINIMOTH_API_KEY = 'mm_test_k'; process.env.SUPABASE_DB_URL = 'postgres://u:p@h.example/db';
 process.env.HOD_PHONES = '9100000001=CMPN;9100000002=AIDS'; process.env.TEACHER_PHONES = '';
 const path = require('path'), crypto = require('crypto'), assert = require('assert');
 const API = process.env.API_DIR || path.join(__dirname, '../../api');

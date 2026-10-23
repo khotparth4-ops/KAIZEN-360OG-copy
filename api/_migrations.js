@@ -1,5 +1,4 @@
-// Schema for Campus360. Add new migrations at the end; never edit or remove one that has shipped.
-// New tables only: the existing `users`, `rides` and `kaizen_reviews` tables are left untouched.
+// Schema for Campus360's API data. Add new migrations at the end; never edit or remove one that has shipped.
 const BRANCHES = [
   ['AIDS', 'Artificial Intelligence & Data Science'], ['ECS', 'Electronics & Computer Science'],
   ['CMPN', 'Computer Engineering'], ['INFT', 'Information Technology'],
@@ -308,6 +307,45 @@ module.exports = [
       `create table if not exists parent_seen (
         parent_phone text not null, student_id uuid not null references accounts(id) on delete cascade,
         seen_at timestamptz not null default now(), primary key (parent_phone, student_id))`,
+    ],
+  },
+  {
+    id: 5,
+    name: 'base API tables for Supabase deployment',
+    up: [
+      `create table if not exists users (
+        phone text primary key,
+        name text not null default '',
+        roles jsonb not null default '["student"]'::jsonb,
+        created_at timestamptz not null default now())`,
+      `create table if not exists rides (
+        id uuid primary key default gen_random_uuid(),
+        driver_name text not null,
+        origin text not null,
+        destination text not null,
+        depart_at timestamptz not null,
+        seats integer not null check (seats between 1 and 8),
+        owner_phone text not null,
+        created_at timestamptz not null default now())`,
+      `create index if not exists rides_by_departure on rides (depart_at)`,
+      `create table if not exists kaizen_reviews (
+        id text primary key,
+        data jsonb not null,
+        owner text,
+        created_at timestamptz not null default now())`,
+      `create table if not exists api_cache (
+        key text primary key,
+        body jsonb not null,
+        fetched_at timestamptz not null default now())`,
+      `create table if not exists places (
+        id bigserial primary key,
+        name text not null,
+        category text not null default 'other',
+        lat double precision not null check (lat between -90 and 90),
+        lng double precision not null check (lng between -180 and 180),
+        note text,
+        created_at timestamptz not null default now())`,
+      `create index if not exists places_by_name on places (name)`,
     ],
   },
 ];
